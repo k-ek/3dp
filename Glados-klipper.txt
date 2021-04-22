@@ -1,0 +1,262 @@
+# This file contains configs for Glados i3 printer
+
+###############################################################
+## Printer ##
+###############################################################
+
+[printer]
+kinematics: cartesian
+max_velocity: 200
+max_accel: 1500
+max_z_velocity: 5
+max_z_accel: 200
+
+[mcu]
+serial: /dev/serial/by-id/usb-Klipper_lpc1768_01091818D2084D53A2F5094E040000F5-if00
+baud: 250000
+[virtual_sdcard]
+path: ~/.octoprint/uploads/
+
+###############################################################
+## X axis ##
+###############################################################
+
+[stepper_x]
+step_pin: P2.2
+dir_pin: !P2.6
+enable_pin: !P2.1
+step_distance: .0049125
+#step_distance: .00975
+#step_distance: .0125
+endstop_pin: P1.29
+position_min: -2
+position_endstop: 0
+position_max: 246
+homing_speed: 50
+
+[tmc2209 stepper_x]
+uart_pin: P1.10
+microsteps: 16
+interpolate = False
+run_current: 1.250
+hold_current: 0.400
+stealthchop_threshold: 20000
+#stealthchop_threshold: 60 # 0 or 200
+
+###############################################################
+## Y axis ##
+###############################################################
+
+[stepper_y]
+step_pin: P0.19
+dir_pin: !P0.20
+enable_pin: !P2.8
+step_distance: .006327
+#step_distance: .003185
+#step_distance: .005
+endstop_pin: P1.28
+position_min: -8
+position_endstop: -8
+position_max: 210
+homing_speed: 50
+
+[tmc2208 stepper_y]
+uart_pin: P1.9
+microsteps: 16
+#interpolate = True
+interpolate = False
+#run_current: 0.750
+#hold_current: 0.200
+run_current: 1.250
+hold_current: 0.400
+stealthchop_threshold: 2000
+#stealthchop_threshold: 60 # 0 or 200
+driver_TOFF: 3
+driver_HEND: 2
+driver_HSTRT: 4
+
+###############################################################
+## Z axis ##
+###############################################################
+
+[stepper_z]
+step_pin: P0.22
+dir_pin: P2.11
+enable_pin: !P0.21
+step_distance: .0025
+endstop_pin: probe:z_virtual_endstop
+position_min: -3
+position_max: 255
+
+[tmc2209 stepper_z]
+uart_pin: P1.8
+microsteps: 16
+run_current: 0.650
+hold_current: 0.400
+stealthchop_threshold: 3000
+
+###############################################################
+## Extruder ##
+###############################################################
+
+[extruder]
+step_pin: P2.13
+dir_pin: !P0.11
+enable_pin: !P2.12
+#step_distance: .0024096386
+step_distance: .0023376623
+nozzle_diameter: 0.400
+filament_diameter: 1.750
+max_extrude_cross_section: 1
+heater_pin: P2.7
+sensor_type: EPCOS 100K B57560G104F
+sensor_pin: P0.24
+#pressure_advance: 0.060
+pressure_advance: 0.05
+min_temp: 0
+max_temp: 285
+
+[tmc2209 extruder]
+uart_pin: P1.4
+microsteps: 16
+run_current: 0.600
+hold_current: 0.300
+stealthchop_threshold: 500
+
+###############################################################
+## Heatbed ##
+###############################################################
+
+[heater_bed]
+heater_pin: P2.5
+#sensor_type: EPCOS 100K B57560G104F
+sensor_type: NTC 100K beta 3950
+sensor_pin: P0.25
+min_temp: 0
+max_temp: 130
+
+[verify_heater heater_bed]
+check_gain_time: 600
+heating_gain: 1
+
+###############################################################
+## Part cooling fan / fan output marked 'FAN' ##
+###############################################################
+
+[fan]
+pin: P2.3
+
+###############################################################
+## Heater fan SKR ##
+###############################################################
+
+[heater_fan e0_fan]
+pin: P2.4
+heater: extruder
+heater_temp: 50.0
+fan_speed: 1.0
+
+###############################################
+##  Probing/Mesh ##
+###############################################
+
+[bltouch]
+#sensor_pin: P1.27  # Pull-up (^ symbol) needed in open drain mode
+sensor_pin: P0.10
+control_pin: P2.0
+# Some BLTouch V3 and many clones apparently require this, though mine didnt:
+#pin_up_touch_mode_reports_triggered: False
+pin_up_reports_not_triggered: False
+#flavor: genuine_smart_3.1
+x_offset: 31
+y_offset: 3
+#z_offset: 1.05
+#z_offset: 0.675 #jolmukodik
+z_offset: 0.7
+pin_move_time: 1
+samples: 3
+sample_retract_dist: 3.5
+samples_tolerance: 0.200
+
+[bed_mesh]
+speed: 100
+horizontal_move_z: 8
+mesh_min: 35,5
+mesh_max: 240,205
+probe_count: 3,3
+fade_start: 1.0
+mesh_pps: 2,2
+
+[safe_z_home]
+home_xy_position: 100,100
+speed: 50.0
+z_hop: 10.0
+z_hop_speed: 10.0
+
+###############################################
+##  Custom G code macros ##
+###############################################
+
+[gcode_macro G29]
+gcode:
+    BED_MESH_CALIBRATE
+
+[pause_resume]
+
+[gcode_macro M600]
+gcode:
+	PAUSE
+	CHANGE_FILAMENT_START
+
+[gcode_macro CHANGE_FILAMENT_START]
+gcode:
+	SAVE_GCODE_STATE NAME=M600_state
+	G91
+	G1 E-.8 F2700
+	G1 Z10
+	G90
+	G1 X50 Y0 F3000
+	G91
+	G1 E-5 F300
+
+[gcode_macro CHANGE_FILAMENT_END]
+gcode:
+	G91
+	RESTORE_GCODE_STATE NAME=M600_state
+	RESUME
+
+
+[respond]
+default_type: echo
+
+#*# <---------------------- SAVE_CONFIG ---------------------->
+#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated.
+#*#
+#*# [extruder]
+#*# control = pid
+#*# pid_kp = 20.391
+#*# pid_ki = 0.800
+#*# pid_kd = 129.994
+#*#
+#*# [heater_bed]
+#*# control = pid
+#*# pid_kp = 60.506
+#*# pid_ki = 0.585
+#*# pid_kd = 1563.334
+#*#
+#*# [bed_mesh default]
+#*# version = 1
+#*# points =
+#*# 	  0.035833, 0.046667, -0.130833
+#*# 	  -0.158333, 0.025000, -0.090833
+#*# 	  0.095833, -0.009167, -0.083333
+#*# tension = 0.2
+#*# min_x = 35.0
+#*# algo = lagrange
+#*# y_count = 3
+#*# mesh_y_pps = 2
+#*# min_y = 5.0
+#*# x_count = 3
+#*# max_y = 205.0
+#*# mesh_x_pps = 2
+#*# max_x = 240.0
